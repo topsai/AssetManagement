@@ -1,0 +1,445 @@
+{% extends 'sb-admin/pages/base.html' %}
+{% block content %}
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                    <h4 class="modal-title" id="myModalLabel">Console Output</h4>
+                </div>
+                <div class="modal-body" id="modal-body">在这里添加一些文本</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary">提交更改</button>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal -->
+    </div>
+    <!-- /.panel-body -->
+
+    <p class="ajax ajaxResult">这里将显示首页文章列表。</p>
+    <p class="ajax ajaxResult">&nbsp;</p>
+    <div id="page-wrapper">
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">NewOA</h1>
+            </div>
+            <!-- /.col-lg-12 -->
+        </div>
+
+        <!-- /.row -->
+        <div class="row">
+            <div class="col-lg-2 col-md-6 col-lg-offset-1">
+                <div class="well text-center">
+                    <span style="font-size: 50px">{{ ret.0 }}</span>
+                    <p>当前连接数</p>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 col-lg-offset-2">
+                <div class="well text-center">
+                    <span style="font-size: 50px">{{ ret.0 }}</span>
+                    <p>发布次数</p>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6 col-lg-offset-2">
+                <div class="well text-center">
+                    <span style="font-size: 50px">{{ ret.0 }}</span>
+                    <p>发布版本号</p>
+                </div>
+            </div>
+        </div>
+        <!-- /.row -->
+        <div class="row text-center" style="padding-top: 100px;">
+            <!-- 发布会滚-->
+            <div class="col-lg-8 col-lg-offset-2">
+                <div class="col-lg-4 col-lg-offset-1">
+                    <button type="button" class="btn btn-primary btn-block btn-lg">发布</button>
+                </div>
+                <div class="col-lg-4 col-lg-offset-1">
+                    <button type="button" class="btn btn-default btn-block btn-lg">回滚</button>
+                </div>
+            </div>
+            <!-- 构建历史-->
+            <div class="col-lg-10 col-lg-offset-1" style="padding-top: 100px;">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                            <span style="font-size: 22px">构建历史</span>
+                            <div style="float: right">
+                                <button type="button" class="btn btn-info btn-circle">
+                                    <i class="fa fa-check"></i>
+                                </button>
+                                成功
+                                <button type="button" class="btn btn-warning btn-circle "><i
+                                        class="glyphicon glyphicon-ban-circle"></i>
+                                </button>
+                                停止
+                                <button type="button" class="btn btn-danger btn-circle"><i
+                                        class="fa fa-times"></i>
+                                </button>
+                                失败
+                            </div>
+
+
+                    </div>
+                    <!-- /.panel-heading 构建历史-->
+                    <div class="panel-body">
+                        <div class="list-group">
+                            <a class="list-group-item">
+                                <div class="row text-center">
+
+                                    <div class="col-lg-4">
+                                        工作名称
+                                    </div>
+                                    <div class="col-lg-4">
+                                        时间
+                                    </div>
+                                    <div class="col-lg-4">
+                                        构建状态
+                                    </div>
+
+                                </div>
+                            </a>
+                            {% for i in build_history %}
+                                <a class="list-group-item">
+                                    <div class="row text-center">
+
+                                        <div class="col-lg-4">
+                                            {{ i.0 }}
+                                        </div>
+                                        <div class="col-lg-4">
+                                            <span class="text-muted"><em>{{ i.1 }}</em></span>
+                                        </div>
+                                        <div class="col-lg-4">
+                                            {% if i.2 == 'SUCCESS' %}
+                                                <button type="button" class="btn btn-info btn-circle "
+                                                        data-toggle="modal"
+                                                        data-target="#myModal"
+                                                        onclick="test('./get_build_console/test/{{ i.3 }}/')">
+                                                    <i class="fa fa-check"></i>
+                                                </button>
+                                            {% elif i.2 == 'ABORTED' %}
+                                                <button type="button" class="btn btn-warning btn-circle"
+                                                        data-toggle="modal"
+                                                        data-target="#myModal"><i
+                                                        class="glyphicon glyphicon-ban-circle"></i>
+                                                </button>
+                                            {% elif i.2 == 'FAILURE' %}
+                                                <button type="button" class="btn btn-danger btn-circle"
+                                                        data-toggle="modal"
+                                                        data-target="#myModal" href="get_build_console/test/{{ i.3 }}/">
+                                                    <i
+                                                            class="fa fa-times"></i>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                        <!-- /.list-group -->
+                        <a href="#" class="btn btn-default btn-block">View All Historys</a>
+                    </div>
+                    <!-- /.panel-body -->
+                </div>
+                <!-- /.panel -->
+            </div>
+            <!-- /.col-lg-4 -->
+        </div>
+        <!-- /.row -->
+    </div>
+{% endblock content %}
+
+{% block js %}
+    <script language="javascript">
+        {#        $.ajax({#}
+        {#            type: "get",#}
+        {#            url: "http://192.168.202.143/jenkins/job/test/rssAll",#}
+        {#            beforeSend: function (XMLHttpRequest) {#}
+        {#                console.log("准备加载数据！");#}
+        {#            },#}
+        {#            success: function (data, textStatus) {#}
+        {#                $(".ajax.ajaxResult").html("");#}
+        {#                $("item", data).each(function (i, domEle) {#}
+        {#                    $(".ajax.ajaxResult").append("<li>" + $(domEle).children("title").text() + "</li>");#}
+        {#                });#}
+        {#            },#}
+        {#            complete: function (XMLHttpRequest, textStatus) {#}
+        {#                //HideLoading();#}
+        {#                console.log("加载数据完成！");#}
+        {#            },#}
+        {#            error: function () {#}
+        {#                //请求出错处理#}
+        {#            }#}
+        {#        });#}
+        <!-- 获取控制台输出 -->
+        function test(url) {
+            $.ajax({
+                type: "get",
+                url: url,
+                beforeSend: function (XMLHttpRequest) {
+                    console.log("准备加载数据！");
+                },
+                success: function (data, textStatus) {
+                    $('#modal-body').html(data);
+                    console.log(data);
+                },
+                complete: function (XMLHttpRequest, textStatus) {
+                    //HideLoading();
+                    console.log("加载数据完成！");
+                },
+                error: function () {
+                    //请求出错处理
+                    console.log("err");
+                }
+            });
+            $('#modal-body').val();
+            console.log(url);
+        }
+
+
+    </script>
+{% endblock js %}
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>test all builds</title>
+    <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/"/>
+    <updated>2017-12-26T06:36:53Z</updated>
+    <author>
+        <name>Jenkins Server</name>
+    </author>
+    <id>urn:uuid:903deee0-7bfa-11db-9fe1-0800200c9a66</id>
+    <entry><title>test #38 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/38/"/>
+        <id>tag:hudson.dev.java.net,2017:test:38</id>
+        <published>2017-12-26T06:36:53Z</published>
+        <updated>2017-12-26T06:36:53Z</updated>
+    </entry>
+    <entry><title>test #37 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/37/"/>
+        <id>tag:hudson.dev.java.net,2017:test:37</id>
+        <published>2017-12-26T03:29:45Z</published>
+        <updated>2017-12-26T03:29:45Z</updated>
+    </entry>
+    <entry><title>test #36 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/36/"/>
+        <id>tag:hudson.dev.java.net,2017:test:36</id>
+        <published>2017-12-25T06:32:38Z</published>
+        <updated>2017-12-25T06:32:38Z</updated>
+    </entry>
+    <entry><title>test #35 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/35/"/>
+        <id>tag:hudson.dev.java.net,2017:test:35</id>
+        <published>2017-12-25T06:30:03Z</published>
+        <updated>2017-12-25T06:30:03Z</updated>
+    </entry>
+    <entry><title>test #34 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/34/"/>
+        <id>tag:hudson.dev.java.net,2017:test:34</id>
+        <published>2017-12-25T06:27:25Z</published>
+        <updated>2017-12-25T06:27:25Z</updated>
+    </entry>
+    <entry><title>test #33 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/33/"/>
+        <id>tag:hudson.dev.java.net,2017:test:33</id>
+        <published>2017-12-25T06:21:07Z</published>
+        <updated>2017-12-25T06:21:07Z</updated>
+    </entry>
+    <entry><title>test #32 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/32/"/>
+        <id>tag:hudson.dev.java.net,2017:test:32</id>
+        <published>2017-12-25T06:16:59Z</published>
+        <updated>2017-12-25T06:16:59Z</updated>
+    </entry>
+    <entry><title>test #31 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/31/"/>
+        <id>tag:hudson.dev.java.net,2017:test:31</id>
+        <published>2017-12-25T06:08:25Z</published>
+        <updated>2017-12-25T06:08:25Z</updated>
+    </entry>
+    <entry><title>test #30 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/30/"/>
+        <id>tag:hudson.dev.java.net,2017:test:30</id>
+        <published>2017-12-25T03:39:56Z</published>
+        <updated>2017-12-25T03:39:56Z</updated>
+    </entry>
+    <entry><title>test #29 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/29/"/>
+        <id>tag:hudson.dev.java.net,2017:test:29</id>
+        <published>2017-12-25T03:31:20Z</published>
+        <updated>2017-12-25T03:31:20Z</updated>
+    </entry>
+    <entry><title>test #28 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/28/"/>
+        <id>tag:hudson.dev.java.net,2017:test:28</id>
+        <published>2017-12-25T03:11:57Z</published>
+        <updated>2017-12-25T03:11:57Z</updated>
+    </entry>
+    <entry><title>test #27 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/27/"/>
+        <id>tag:hudson.dev.java.net,2017:test:27</id>
+        <published>2017-12-25T02:59:39Z</published>
+        <updated>2017-12-25T02:59:39Z</updated>
+    </entry>
+    <entry><title>test #26 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/26/"/>
+        <id>tag:hudson.dev.java.net,2017:test:26</id>
+        <published>2017-12-25T02:56:00Z</published>
+        <updated>2017-12-25T02:56:00Z</updated>
+    </entry>
+    <entry><title>test #25 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/25/"/>
+        <id>tag:hudson.dev.java.net,2017:test:25</id>
+        <published>2017-12-22T02:47:09Z</published>
+        <updated>2017-12-22T02:47:09Z</updated>
+    </entry>
+    <entry><title>test #24 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/24/"/>
+        <id>tag:hudson.dev.java.net,2017:test:24</id>
+        <published>2017-12-22T02:44:17Z</published>
+        <updated>2017-12-22T02:44:17Z</updated>
+    </entry>
+    <entry><title>test #23 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/23/"/>
+        <id>tag:hudson.dev.java.net,2017:test:23</id>
+        <published>2017-12-21T05:28:24Z</published>
+        <updated>2017-12-21T05:28:24Z</updated>
+    </entry>
+    <entry><title>test #22 (back to normal)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/22/"/>
+        <id>tag:hudson.dev.java.net,2017:test:22</id>
+        <published>2017-12-21T05:24:51Z</published>
+        <updated>2017-12-21T05:24:51Z</updated>
+    </entry>
+    <entry><title>test #21 (broken since build #19)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/21/"/>
+        <id>tag:hudson.dev.java.net,2017:test:21</id>
+        <published>2017-12-19T14:23:48Z</published>
+        <updated>2017-12-19T14:23:48Z</updated>
+    </entry>
+    <entry><title>test #20 (broken since build #19)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/20/"/>
+        <id>tag:hudson.dev.java.net,2017:test:20</id>
+        <published>2017-12-19T14:05:09Z</published>
+        <updated>2017-12-19T14:05:09Z</updated>
+    </entry>
+    <entry><title>test #19 (broken since this build)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/19/"/>
+        <id>tag:hudson.dev.java.net,2017:test:19</id>
+        <published>2017-12-19T14:03:27Z</published>
+        <updated>2017-12-19T14:03:27Z</updated>
+    </entry>
+    <entry><title>test #18 (aborted)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/18/"/>
+        <id>tag:hudson.dev.java.net,2017:test:18</id>
+        <published>2017-12-19T13:36:37Z</published>
+        <updated>2017-12-19T13:36:37Z</updated>
+    </entry>
+    <entry><title>test #17 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/17/"/>
+        <id>tag:hudson.dev.java.net,2017:test:17</id>
+        <published>2017-12-19T13:02:32Z</published>
+        <updated>2017-12-19T13:02:32Z</updated>
+    </entry>
+    <entry><title>test #16 (back to normal)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/16/"/>
+        <id>tag:hudson.dev.java.net,2017:test:16</id>
+        <published>2017-12-19T12:56:20Z</published>
+        <updated>2017-12-19T12:56:20Z</updated>
+    </entry>
+    <entry><title>test #15 (broken since this build)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/15/"/>
+        <id>tag:hudson.dev.java.net,2017:test:15</id>
+        <published>2017-12-19T12:53:47Z</published>
+        <updated>2017-12-19T12:53:47Z</updated>
+    </entry>
+    <entry><title>test #14 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/14/"/>
+        <id>tag:hudson.dev.java.net,2017:test:14</id>
+        <published>2017-12-19T09:30:51Z</published>
+        <updated>2017-12-19T09:30:51Z</updated>
+    </entry>
+    <entry><title>test #13 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/13/"/>
+        <id>tag:hudson.dev.java.net,2017:test:13</id>
+        <published>2017-12-19T09:29:15Z</published>
+        <updated>2017-12-19T09:29:15Z</updated>
+    </entry>
+    <entry><title>test #12 (back to normal)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/12/"/>
+        <id>tag:hudson.dev.java.net,2017:test:12</id>
+        <published>2017-12-19T09:28:07Z</published>
+        <updated>2017-12-19T09:28:07Z</updated>
+    </entry>
+    <entry><title>test #11 (broken since build #8)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/11/"/>
+        <id>tag:hudson.dev.java.net,2017:test:11</id>
+        <published>2017-12-19T09:27:25Z</published>
+        <updated>2017-12-19T09:27:25Z</updated>
+    </entry>
+    <entry><title>test #10 (broken since build #8)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/10/"/>
+        <id>tag:hudson.dev.java.net,2017:test:10</id>
+        <published>2017-12-19T09:25:14Z</published>
+        <updated>2017-12-19T09:25:14Z</updated>
+    </entry>
+    <entry><title>test #9 (broken since build #8)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/9/"/>
+        <id>tag:hudson.dev.java.net,2017:test:9</id>
+        <published>2017-12-19T09:23:42Z</published>
+        <updated>2017-12-19T09:23:42Z</updated>
+    </entry>
+    <entry><title>test #8 (broken since this build)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/8/"/>
+        <id>tag:hudson.dev.java.net,2017:test:8</id>
+        <published>2017-12-19T09:22:49Z</published>
+        <updated>2017-12-19T09:22:49Z</updated>
+    </entry>
+    <entry><title>test #7 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/7/"/>
+        <id>tag:hudson.dev.java.net,2017:test:7</id>
+        <published>2017-12-19T09:21:21Z</published>
+        <updated>2017-12-19T09:21:21Z</updated>
+    </entry>
+    <entry><title>test #6 (back to normal)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/6/"/>
+        <id>tag:hudson.dev.java.net,2017:test:6</id>
+        <published>2017-12-19T09:20:41Z</published>
+        <updated>2017-12-19T09:20:41Z</updated>
+    </entry>
+    <entry><title>test #5 (broken since build #2)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/5/"/>
+        <id>tag:hudson.dev.java.net,2017:test:5</id>
+        <published>2017-12-19T09:19:00Z</published>
+        <updated>2017-12-19T09:19:00Z</updated>
+    </entry>
+    <entry><title>test #4 (broken since build #2)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/4/"/>
+        <id>tag:hudson.dev.java.net,2017:test:4</id>
+        <published>2017-12-19T09:17:46Z</published>
+        <updated>2017-12-19T09:17:46Z</updated>
+    </entry>
+    <entry><title>test #3 (broken since build #2)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/3/"/>
+        <id>tag:hudson.dev.java.net,2017:test:3</id>
+        <published>2017-12-19T09:16:14Z</published>
+        <updated>2017-12-19T09:16:14Z</updated>
+    </entry>
+    <entry><title>test #2 (broken since this build)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/2/"/>
+        <id>tag:hudson.dev.java.net,2017:test:2</id>
+        <published>2017-12-19T09:12:14Z</published>
+        <updated>2017-12-19T09:12:14Z</updated>
+    </entry>
+    <entry><title>test #1 (stable)</title>
+        <link rel="alternate" type="text/html" href="http://192.168.202.143/jenkins/job/test/1/"/>
+        <id>tag:hudson.dev.java.net,2017:test:1</id>
+        <published>2017-12-19T08:56:58Z</published>
+        <updated>2017-12-19T08:56:58Z</updated>
+    </entry>
+</feed>
