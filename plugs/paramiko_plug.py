@@ -20,7 +20,7 @@ class MyParamiko:
         # 允许将信任的主机自动加入到host_allow 列表，此方法必须放在connect方法的前面
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         # 调用connect方法连接服务器
-        ssh.connect(hostname='192.168.2.129', port=22, username='super', password='super')
+        ssh.connect(hostname='192.168.202.143', port=22, username='root', password='cai@521131')
         # 执行命令
         stdin, stdout, stderr = ssh.exec_command('df -hl')
         # 结果放到stdout中，如果有错误将放到stderr中
