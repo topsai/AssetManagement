@@ -2,6 +2,8 @@ from django.db import models
 
 
 # Create your models here.
+from django.db.transaction import on_commit
+
 
 class User(models.Model):
     name = models.CharField(max_length=256)
