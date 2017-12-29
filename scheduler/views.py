@@ -14,7 +14,7 @@ class config:
         self.user = None
 
     def global_conf(self):
-        user= 'www-data'
+        user = 'www-data'
         worker_processes = 'auto'
         pid = '/run/nginx.pid'
         include = '/etc/nginx/modules-enabled/*.conf'
@@ -23,7 +23,8 @@ class config:
         worker_connections = 768
         multi_accept = 'on'
 
-
+    def http(self):
+        pass
 
 # 切配置文件
 def cut_conf(file):
@@ -41,6 +42,7 @@ def cut_conf(file):
             print(len(line))
             conf_dict.append(line)
     return conf_dict
+
 
 # Create your views here.
 # 调度器管理
