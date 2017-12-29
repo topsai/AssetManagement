@@ -29,7 +29,9 @@
                             全局设置
                         </div>
                         <div class="panel-body">
-                            <p>{{ ssh_ret | safe}}</p>
+                            {% for i in ssh_ret %}
+                                <p>{{ i  }}</p>
+                            {% endfor %}
                         </div>
                         <div class="panel-footer">
                             Panel Footer
