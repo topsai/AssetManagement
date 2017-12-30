@@ -1,4 +1,5 @@
-Django==1.11.8
-python_jenkins==0.4.15
 paramiko==2.4.0
+python_jenkins==0.4.15
 requests==2.18.4
+Django==1.11.8
+Docker==2.7.0
