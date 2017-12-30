@@ -3,3 +3,4 @@ python_jenkins==0.4.15
 requests==2.18.4
 Django==1.11.8
 Docker==2.7.0
+Beautifulsoup4==4.6.0
