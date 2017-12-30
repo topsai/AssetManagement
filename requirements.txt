@@ -1,0 +1,4 @@
+Django==1.11.8
+python_jenkins==0.4.15
+paramiko==2.4.0
+requests==2.18.4
