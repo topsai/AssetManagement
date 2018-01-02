@@ -5,7 +5,7 @@ from plugs import jenkins_plug
 import configparser
 from configparser import ConfigParser
 from io import StringIO
-import nginx
+# import nginx
 
 
 # from ConfigParser import ConfigParser
