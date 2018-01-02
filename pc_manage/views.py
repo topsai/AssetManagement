@@ -229,15 +229,17 @@ class MyParamiko:
 def index(request):
     client = docker.APIClient(base_url='http://192.168.202.143:2375')
     # ret = requests.get('http://192.168.202.143:18099/nginx_status')
-    ret = []
-    data = models.User.objects.all()
-    ret = ret.text.split()
-    ret = [ret[2], ret[7], ret[8], ret[9], ret[11], ret[13], ret[15]]
-    server = MyJenkins()
-    server.conn()
-    count = None
-    svncount = None
-    return render(request, 'sb-admin/pages/index.html', {'data': data, 'ret': ret, 'count': count, 'svncount': svncount})
+    # ret = []
+    # data = models.User.objects.all()
+    # ret = ret.text.split()
+    # ret = [ret[2], ret[7], ret[8], ret[9], ret[11], ret[13], ret[15]]
+    # server = MyJenkins()
+    # server.conn()
+    # count = None
+    # svncount = None
+    data = {}
+    # {'data': data, 'ret': ret, 'count': count, 'svncount': svncount}
+    return render(request, 'sb-admin/pages/index.html', )
 
 
 # 自动发布
