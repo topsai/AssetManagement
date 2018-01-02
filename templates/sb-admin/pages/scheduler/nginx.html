@@ -24,20 +24,59 @@
         <!-- /.row -->
         <div class="row">
             <div class="col-lg-12">
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            全局设置
-                        </div>
-                        <div class="panel-body">
-                            {% for i in ssh_ret %}
-                                <p>{{ i  }}</p>
-                            {% endfor %}
-                        </div>
-                        <div class="panel-footer">
-                            Panel Footer
-                        </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        全局设置
+                    </div>
+                    <div class="panel-body">
+                        {% for k, v in conf.global.items %}
+
+                            <p>
+                                <label>{{ k }}:</label>
+                                <input value="{{ v }}">
+                            </p>
+                        {% endfor %}
+                    </div>
+                    <div class="panel-footer">
+                        Panel Footer
                     </div>
                 </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        events设置
+                    </div>
+                    <div class="panel-body">
+
+                        {% for k, v in conf.events.items %}
+                            <p>
+                                <label>{{ k }}:</label>
+                                <input value="{{ v }}">
+                            </p>
+                        {% endfor %}
+
+                    </div>
+                    <div class="panel-footer">
+                        Panel Footer
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        http设置
+                    </div>
+                    <div class="panel-body">
+
+                        {% for k, v in conf.http.items %}
+                            <p>
+                                <label>{{ k }}:</label>
+                                <input value="{{ v }}">
+                            </p>
+                        {% endfor %}
+                    </div>
+                    <div class="panel-footer">
+                        Panel Footer
+                    </div>
+                </div>
+            </div>
         </div>
         <!-- /.row -->
     </div>

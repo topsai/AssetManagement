@@ -4,3 +4,5 @@ requests==2.18.4
 Django==1.11.8
 Docker==2.7.0
 Beautifulsoup4==4.6.0
+djangorestframework==3.7.7
+python-nginx==1.2
