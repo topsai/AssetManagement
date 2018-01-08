@@ -20,6 +20,7 @@ from pc_manage import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^$', views.index),
+    url(r'^server/$', views.server),
     url(r'^scheduler/', include('scheduler.urls')),
     url(r'^project_public/', include('project_public.urls')),
 ]

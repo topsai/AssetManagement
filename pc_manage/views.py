@@ -1,14 +1,13 @@
 from django.shortcuts import render
 from pc_manage import models
 from plugs.jenkins_plug import MyJenkins
+from django.conf import settings
 import jenkins
 import requests
 import docker
 import paramiko
 import time
-
-
-
+import forms
 
 
 # 操作paramiko类
@@ -62,7 +61,6 @@ class MyParamiko:
         ssh.close()
         # 以上需要确保被访问的服务器对应用户.ssh目录下有authorized_keys文件，也就是将服务器上生成的公钥文件保存为authorized_keys。并将私钥文件作为paramiko的登陆密钥
 
-
         # 4 基于密钥的 Transport 方式登录
         # 指定本地的RSA私钥文件,如果建立密钥对时设置的有密码，password为设定的密码，如无不用指定password参数
         pkey = paramiko.RSAKey.from_private_key_file('/home/super/.ssh/id_rsa', password='12345')
@@ -81,7 +79,6 @@ class MyParamiko:
         # 关闭连接
         trans.close()
 
-
         # ##### 传文件 SFTP ###########
         # 实例化一个trans对象# 实例化一个transport对象
         trans = paramiko.Transport(('192.168.2.129', 22))
@@ -95,7 +92,6 @@ class MyParamiko:
         # 下载文件
         # sftp.get(remotepath, localpath)
         trans.close()
-
 
         # 5 实现输入命令立马返回结果的功能
         # 以上操作都是基本的连接，如果我们想实现一个类似xshell工具的功能，登录以后可以输入命令回车后就返回结果：
@@ -152,7 +148,6 @@ class MyParamiko:
         channel.close()
         # 关闭链接
         trans.close()
-
 
         # 6 支持tab自动补全
 
@@ -253,3 +248,15 @@ def pc(request):
     return render(request, 'pc.html', {'data': data})
 
 
+# 服务器管理
+def server(request):
+    JENKINS_SERVER = settings.JENKINS_SERVER
+    DOCKER_SERVER = settings.DOCKER_SERVER
+    server_type = models.ServerType.objects.all()
+    # fm = forms.ServerTypeForm(initial=server_type)
+    date = {
+        'jenkins': JENKINS_SERVER,
+        'docker': DOCKER_SERVER,
+        # 'fm': fm,
+    }
+    return render(request, 'sb-admin/pages/server.html', date)
