@@ -1,7 +1,8 @@
 from django.shortcuts import render
 import requests
 from plugs import jenkins_plug
-# import paramiko
+import paramiko
+from django.conf import settings
 import configparser
 from configparser import ConfigParser
 from io import StringIO
@@ -9,74 +10,7 @@ from io import StringIO
 
 
 # from ConfigParser import ConfigParser
-# 配置文件类
-class config:
-    def __init__(self):
-        self.user = None
-
-    def global_conf(self):
-        user = 'www-data'
-        worker_processes = 'auto'
-        pid = '/run/nginx.pid'
-        include = '/etc/nginx/modules-enabled/*.conf'
-
-    def events(self):
-        worker_connections = 768
-        multi_accept = 'on'
-
-    def http(self):
-        pass
-
-
-# 切配置文件
-def cut_conf(file):
-    conf_dict = {'global': {}, 'events': {}, 'http': {}}
-    conf_key = 'global'
-    with open(file, 'r') as f:
-        for i in f:
-            print(conf_key)
-            line = i.strip().strip(';')
-            # 去除已注释配置
-            if line.startswith('#'):
-                continue
-            # 去除注释并分割成两段
-            line = line.split('#')[0].strip().strip(';').split(' ', 1)
-            # 去除无效行
-            if line == ['']:
-                continue
-            if line == ['events', '{']:
-                conf_key = 'events'
-                continue
-            if line == ['http', '{']:
-                conf_key = 'http'
-                continue
-            if line == ['}']:
-                conf_key = 'global'
-                continue
-
-            conf_dict[conf_key][line[0]] = line[1]
-
-    return conf_dict
-
-
-# 创建配置文件
-def create_config(conf_dict):
-    conf = ''
-    for k, v in conf_dict['global'].items():
-        str = k + ' ' + v + ';\n'
-        conf += str
-    conf += 'events {\n'
-    for k, v in conf_dict['events'].items():
-        str = k + ' ' + v + ';\n'
-        conf += str
-    conf += '}\n'
-    conf += 'http {\n'
-    for k, v in conf_dict['http'].items():
-        str = k + ' ' + v + ';\n'
-        conf += str
-    conf += '}\n'
-    return conf
-
+from plugs.conf_plug import cut_conf, create_config, cut_conf1
 
 cc = {'global': {'user': 'www-data', 'worker_processes': 'auto', 'pid': '/run/nginx.pid'},
       'events': {'worker_connections': '768'},
@@ -117,11 +51,58 @@ def nginx(request):
     # count = None
     # svncount = server.getsvnnum('test', 44)
     # data = {'ret': ret, 'count': count, 'svncount': None, 'ssh_ret': conf}
-    conf_dict = cut_conf('/etc/nginx/nginx.conf')
-    print(conf_dict)
-    data = {'conf': conf_dict}
-    ret = create_config(cc)
-    print(ret)
+    JENKINS_SERVER = settings.JENKINS_SERVER
+    DOCKER_SERVER = settings.DOCKER_SERVER
+    # ssh = paramiko.SSHClient()
+    # # 允许将信任的主机自动加入到host_allow 列表，此方法必须放在connect方法的前面
+    # ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    # # 调用connect方法连接服务器
+    # ssh.connect(hostname=DOCKER_SERVER, port=22, username='root', password='Dtma@2018')
+    # stdin, stdout, stderr = ssh.exec_command('nginx -v')
+    # # 结果放到stdout中，如果有错误将放到stderr中
+    # print(stdout.read().decode())
+
+    trans = paramiko.Transport((DOCKER_SERVER, 22))
+    # 建立连接
+    trans.connect(username='root', password='Dtma@2018')
+
+    # 将sshclient的对象的transport指定为以上的trans
+    ssh = paramiko.SSHClient()
+    ssh._transport = trans
+    # 执行命令，和传统方法一样
+    stdin, nginxv1, nginxv = ssh.exec_command('nginx -v')
+    stdin, nginx1, stderr = ssh.exec_command('cat /etc/nginx/nginx.conf')
+    stdin, confs, stderr = ssh.exec_command('ls /etc/nginx/conf.d/')
+    confs = confs.read().decode()
+    # 执行命令
+    # stdin, stdout, stderr = ssh.exec_command('netstat -apn | grep nginx')
+    # # 结果放到stdout中，如果有错误将放到stderr中
+    nginx1 = nginx1.read().decode()
+    # nginx2 = nginx2.read().decode()
+    nginx = nginxv.read().decode().split(':', 1)[1]
+    ssh.close()
+    import platform
+    # print(nginx1)
+    system = platform.release()
+    # server_type = models.ServerType.objects.all()
+    # # fm = forms.ServerTypeForm(initial=server_type)
+    # date = {
+    #     'jenkins': JENKINS_SERVER,
+    #     'docker': DOCKER_SERVER,
+    #     'system': system,
+    #     'nginx': nginx,
+    #     # 'fm': fm,
+    # }
+    # conf_dict = cut_conf1(nginx1)
+    # print(conf_dict)
+
+    data = {
+        'conf': nginx1,
+        'confs': confs,
+    }
+    print(nginx1)
+    # ret = create_config(cc)
+    # print(ret)
     return render(request, 'sb-admin/pages/scheduler/nginx.html', data)
 
 

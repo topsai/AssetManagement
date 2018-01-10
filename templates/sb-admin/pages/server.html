@@ -1,0 +1,11 @@
+{% extends "sb-admin/pages/base.html" %}
+{% block content %}
+    <div id="page-wrapper">
+        <div class="row">
+            <p>jenkins:{{ jenkins }}</p>
+            <p>docker:{{ docker }}</p>
+            <p>system:{{ system }}</p>
+            <p>nginx:{{ nginx }}</p>
+        </div>
+    </div>
+{% endblock content %}

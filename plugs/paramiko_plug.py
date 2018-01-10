@@ -13,41 +13,52 @@ import termios
 
 # 操作paramiko类
 class MyParamiko:
-    def conn(self):
+
+    def __init__(self, host, port=22, username='root', password=None, pkey=None):
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = password
+        self.ssh = None
+        self.trans = None
+        self.channel = None
+        self.pkey = pkey
+
+    def sshconn(self):
         # 1 基于用户名和密码的 sshclient 方式登录
         # 建立一个sshclient对象
-        ssh = paramiko.SSHClient()
+        self.ssh = paramiko.SSHClient()
         # 允许将信任的主机自动加入到host_allow 列表，此方法必须放在connect方法的前面
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         # 调用connect方法连接服务器
-        ssh.connect(hostname='192.168.202.143', port=22, username='root', password='cai@521131')
+        self.ssh.connect(hostname=self.host, port=self.port, username=self.username, password=self.password)
         # 执行命令
-        stdin, stdout, stderr = ssh.exec_command('df -hl')
+        stdin, stdout, stderr = self.ssh.exec_command('df -hl')
         # 结果放到stdout中，如果有错误将放到stderr中
         print(stdout.read().decode())
-        # 关闭连接
-        ssh.close()
 
+    def transconn(self):
         # 2 基于用户名和密码的 transport 方式登录
         # 方法1是传统的连接服务器、执行命令、关闭的一个操作，有时候需要登录上服务器执行多个操作，比如执行命令、上传 / 下载文件，方法1则无法实现，可以通过如下方式来操作
         # 实例化一个transport对象
-        trans = paramiko.Transport(('192.168.2.129', 22))
+        trans = paramiko.Transport((self.host, self.port))
         # 建立连接
-        trans.connect(username='super', password='super')
+        trans.connect(username=self.username, password='super')
 
         # 将sshclient的对象的transport指定为以上的trans
-        ssh = paramiko.SSHClient()
-        ssh._transport = trans
+        self.ssh = paramiko.SSHClient()
+        self.ssh._transport = trans
         # 执行命令，和传统方法一样
-        stdin, stdout, stderr = ssh.exec_command('df -hl')
+        stdin, stdout, stderr = self.ssh.exec_command('df -hl')
         print(stdout.read().decode())
 
         # 关闭连接
-        trans.close()
+        # trans.close()
 
+    def keyconn(self, key, pwd):
         # 3 基于公钥密钥的 SSHClient 方式登录
         # 指定本地的RSA私钥文件,如果建立密钥对时设置的有密码，password为设定的密码，如无不用指定password参数
-        pkey = paramiko.RSAKey.from_private_key_file('/home/super/.ssh/id_rsa', password='12345')
+        pkey = paramiko.RSAKey.from_private_key_file(key, pwd)
         # 建立连接
         ssh = paramiko.SSHClient()
         ssh.connect(hostname='192.168.2.129',
@@ -62,6 +73,7 @@ class MyParamiko:
         ssh.close()
         # 以上需要确保被访问的服务器对应用户.ssh目录下有authorized_keys文件，也就是将服务器上生成的公钥文件保存为authorized_keys。并将私钥文件作为paramiko的登陆密钥
 
+    def trankeyconn(self):
 
         # 4 基于密钥的 Transport 方式登录
         # 指定本地的RSA私钥文件,如果建立密钥对时设置的有密码，password为设定的密码，如无不用指定password参数
@@ -81,6 +93,7 @@ class MyParamiko:
         # 关闭连接
         trans.close()
 
+    def sendfile(self):
         # ##### 传文件 SFTP ###########
         # 实例化一个trans对象# 实例化一个transport对象
         trans = paramiko.Transport(('192.168.2.129', 22))
@@ -95,9 +108,9 @@ class MyParamiko:
         # sftp.get(remotepath, localpath)
         trans.close()
 
+    def nothing(self):
         # 5 实现输入命令立马返回结果的功能
         # 以上操作都是基本的连接，如果我们想实现一个类似xshell工具的功能，登录以后可以输入命令回车后就返回结果：
-
 
         # 建立一个socket
         trans = paramiko.Transport(('192.168.2.129', 22))
@@ -149,7 +162,6 @@ class MyParamiko:
         trans.close()
 
         # 6 支持tab自动补全
-
 
         '''
         实现一个xshell登录系统的效果，登录到系统就不断输入命令同时返回结果
@@ -211,3 +223,19 @@ class MyParamiko:
         channel.close()
         # 关闭链接
         trans.close()
+
+    def __delete__(self, instance):
+        # 生命周期结束时关闭链接
+        try:
+            self.ssh.close()
+        except Exception as e:
+            pass
+
+        try:
+            self.trans.close()
+        except Exception as e:
+            pass
+        try:
+            self.channel.close()
+        except Exception as e:
+            pass

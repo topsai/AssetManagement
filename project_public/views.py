@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import requests
 import time
 from requests.auth import HTTPBasicAuth
+from django.conf import settings
 
 
 # 获取进度条
@@ -20,12 +21,13 @@ def build_bar(job_name):
 # Create your views here.
 def new_oa(request):
     auth = HTTPBasicAuth('admin', 'admin')
-    ret = requests.get('http://192.168.202.143:18099/nginx_status')
-    url = 'http://192.168.4.241/jenkins/job/test/lastBuild/api/json?depth=1'
+    # ret = requests.get('http://192.168.202.143:18099/nginx_status')
+    ret = None
+    url = 'http://{}/jenkins/job/test/lastBuild/api/json?depth=1'.format(settings.JENKINS_SERVER)
     t = requests.get(url, auth=('admin', 'admin'))
     # data = models.User.objects.all()
-    ret = ret.text.split()
-    ret = [ret[2], ret[7], ret[8], ret[9], ret[11], ret[13], ret[15]]
+    # ret = ret.text.split()
+    # ret = [ret[2], ret[7], ret[8], ret[9], ret[11], ret[13], ret[15]]
     server = MyJenkins()
     server.conn()
     build_history = []
