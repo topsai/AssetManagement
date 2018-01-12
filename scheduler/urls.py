@@ -19,4 +19,6 @@ from scheduler import views
 
 urlpatterns = [
     url(r'^nginx/$', views.nginx),
+    url(r'^server/$', views.server),
+    url(r'^upstream/$', views.upstream),
 ]

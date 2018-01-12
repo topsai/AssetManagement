@@ -6,6 +6,7 @@ from django.conf import settings
 import configparser
 from configparser import ConfigParser
 from io import StringIO
+import re
 # import nginx
 
 
@@ -61,7 +62,7 @@ def nginx(request):
     # stdin, stdout, stderr = ssh.exec_command('nginx -v')
     # # 结果放到stdout中，如果有错误将放到stderr中
     # print(stdout.read().decode())
-
+    conf_dict = {}
     trans = paramiko.Transport((DOCKER_SERVER, 22))
     # 建立连接
     trans.connect(username='root', password='Dtma@2018')
@@ -74,6 +75,13 @@ def nginx(request):
     stdin, nginx1, stderr = ssh.exec_command('cat /etc/nginx/nginx.conf')
     stdin, confs, stderr = ssh.exec_command('ls /etc/nginx/conf.d/')
     confs = confs.read().decode()
+    # 匹配配置内容
+    # re.match("(\w+)\s+([^;]+)", a)
+    for i in nginx1:
+        ret = re.match("(\w+)\s+([^;]+)", i)
+        k, v = ret.groups()
+        conf_dict[k] = v
+
     # 执行命令
     # stdin, stdout, stderr = ssh.exec_command('netstat -apn | grep nginx')
     # # 结果放到stdout中，如果有错误将放到stderr中
@@ -104,6 +112,50 @@ def nginx(request):
     # ret = create_config(cc)
     # print(ret)
     return render(request, 'sb-admin/pages/scheduler/nginx.html', data)
+
+
+def server(request):
+    DOCKER_SERVER = settings.DOCKER_SERVER
+    trans = paramiko.Transport((DOCKER_SERVER, 22))
+    trans.connect(username='root', password='Dtma@2018')
+    ssh = paramiko.SSHClient()
+    ssh._transport = trans
+    if request.method == 'POST':
+        server_name = request.POST.get('server_name')
+        listen = request.POST.get('listen')
+        location = request.POST.get('location')
+        root = request.POST.get('root')
+        index = request.POST.get('index')
+        conf = '''
+server {
+    server_name %s;
+    listen %s;
+    location %s {
+        root %s;
+        index %s;
+    }
+
+}
+''' % (server_name, listen, location, root, index)
+        print(conf)
+        print(request.POST)
+        stdin, ret, err = ssh.exec_command('echo > /etc/nginx/conf.d/{}.conf'.format(server_name))
+        print('ret:', ret.read().decode())
+        print('err', err.read().decode())
+
+    # elif request.method == 'GET':
+
+    stdin, confs, stderr = ssh.exec_command('ls /etc/nginx/conf.d/')
+    confs = confs.read().decode()
+    stderr = stderr.read().decode()
+    print(confs)
+    print(stderr)
+    ssh.close()
+    return render(request, 'sb-admin/pages/scheduler/server.html', {'confs': confs})
+
+
+def upstream(request):
+    return render(request, 'sb-admin/pages/scheduler/upstream.html')
 
 
 nginx_conf = {
