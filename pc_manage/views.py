@@ -8,7 +8,7 @@ import requests
 import docker
 import paramiko
 import time
-import forms
+# import forms
 
 
 # Create your views here.

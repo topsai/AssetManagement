@@ -69,10 +69,13 @@
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         全局设置
+                        {{ ret }}
                     </div>
                     <div class="panel-body">
 
-                        {{ confs }}
+                        {% for i in confs %}
+                            <p>{{ i }}| <a href="{{ i }}">编辑</a></p>
+                        {% endfor %}
 
                     </div>
                     <div class="panel-footer">

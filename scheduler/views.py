@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponse
 import requests
 from plugs import jenkins_plug
 import paramiko
@@ -7,19 +7,32 @@ import configparser
 from configparser import ConfigParser
 from io import StringIO
 import re
+
+
 # import nginx
+
+def get_info(cmd):
+    ret = None
+    err = None
+    ssh = paramiko.SSHClient()
+    print('get info {}'.format(cmd))
+    try:
+        trans = paramiko.Transport((settings.DOCKER_SERVER, 22))
+        trans.connect(username='root', password='Dtma@2018')
+        ssh._transport = trans
+        stdin, ret, err = ssh.exec_command(cmd)
+        ret = ret.read().decode()
+        err = err.read().decode()
+    except Exception as e:
+        print('ssh err:', e)
+    finally:
+        ssh.close()
+
+    return ret, err
 
 
 # from ConfigParser import ConfigParser
 from plugs.conf_plug import cut_conf, create_config, cut_conf1
-
-cc = {'global': {'user': 'www-data', 'worker_processes': 'auto', 'pid': '/run/nginx.pid'},
-      'events': {'worker_connections': '768'},
-      'http': {'sendfile': 'on', 'tcp_nopush': 'on', 'tcp_nodelay': 'on', 'keepalive_timeout': '65',
-               'types_hash_max_size': '2048', 'include': '/etc/nginx/sites-enabled/*',
-               'default_type': 'application/octet-stream', 'ssl_protocols': 'TLSv1 TLSv1.1 TLSv1.2',
-               'ssl_prefer_server_ciphers': 'on', 'access_log': '/var/log/nginx/access.log',
-               'error_log': '/var/log/nginx/error.log', 'gzip': 'on', 'gzip_disable': '"msie6"'}}
 
 
 # Create your views here.
@@ -75,17 +88,24 @@ def nginx(request):
     stdin, nginx1, stderr = ssh.exec_command('cat /etc/nginx/nginx.conf')
     stdin, confs, stderr = ssh.exec_command('ls /etc/nginx/conf.d/')
     confs = confs.read().decode()
+    nginx1 = nginx1.read().decode()
+    print('nginx1:', nginx1)
     # 匹配配置内容
     # re.match("(\w+)\s+([^;]+)", a)
-    for i in nginx1:
-        ret = re.match("(\w+)\s+([^;]+)", i)
-        k, v = ret.groups()
-        conf_dict[k] = v
+    # TODO 下一版本改为正则表达式匹配每一项
+    if nginx1:
+        for i in nginx1.split('\n'):
+            ret = re.match("(\w+)\s+([^;]+)", i)
+            try:
+                k, v = ret.groups()
+                conf_dict[k] = v
+            except:
+                pass
 
     # 执行命令
     # stdin, stdout, stderr = ssh.exec_command('netstat -apn | grep nginx')
     # # 结果放到stdout中，如果有错误将放到stderr中
-    nginx1 = nginx1.read().decode()
+
     # nginx2 = nginx2.read().decode()
     nginx = nginxv.read().decode().split(':', 1)[1]
     ssh.close()
@@ -114,70 +134,45 @@ def nginx(request):
     return render(request, 'sb-admin/pages/scheduler/nginx.html', data)
 
 
-def server(request):
-    DOCKER_SERVER = settings.DOCKER_SERVER
-    trans = paramiko.Transport((DOCKER_SERVER, 22))
-    trans.connect(username='root', password='Dtma@2018')
-    ssh = paramiko.SSHClient()
-    ssh._transport = trans
+def server(request, conf=None):
+    data = {}
+    if conf:
+        cmd = 'cat {}{}'.format(settings.CONF_DIR, conf)
+        ret, err = get_info(cmd)
+        data['ret'] = ret
+    conf_list = []
     if request.method == 'POST':
         server_name = request.POST.get('server_name')
         listen = request.POST.get('listen')
         location = request.POST.get('location')
         root = request.POST.get('root')
         index = request.POST.get('index')
-        conf = '''
-server {
-    server_name %s;
-    listen %s;
-    location %s {
-        root %s;
-        index %s;
-    }
-
-}
-''' % (server_name, listen, location, root, index)
-        print(conf)
-        print(request.POST)
-        stdin, ret, err = ssh.exec_command('echo > /etc/nginx/conf.d/{}.conf'.format(server_name))
+        conf = "server {server_name %s;\nlisten %s;\nlocation %s \n{root %s;\nindex %s;\n}\n}\n" % (
+            server_name, listen, location, root, index)
+        cmd = 'echo "{}" >>{}{}.conf'.format(conf, settings.CONF_DIR, server_name)
+        print('cmd:', cmd)
+        ret, err = get_info(cmd)
         print('ret:', ret.read().decode())
-        print('err', err.read().decode())
+        print('err:', err.read().decode())
 
     # elif request.method == 'GET':
 
-    stdin, confs, stderr = ssh.exec_command('ls /etc/nginx/conf.d/')
-    confs = confs.read().decode()
-    stderr = stderr.read().decode()
-    print(confs)
-    print(stderr)
-    ssh.close()
-    return render(request, 'sb-admin/pages/scheduler/server.html', {'confs': confs})
+    confs, stderr = get_info('ls {}'.format(settings.CONF_DIR))
+    if confs:
+        for i in confs.split('\n'):
+            if len(i) > 5:
+                conf_list.append(i)
+    else:
+        print('e', stderr)
+    data['confs'] = conf_list
+    return render(request, 'sb-admin/pages/scheduler/server.html', data)
+
+
+def nginx_test():
+    cmd = 'nginx -t'
+    ret, err = get_info(cmd)
+    return ret, err
 
 
 def upstream(request):
     return render(request, 'sb-admin/pages/scheduler/upstream.html')
-
-
-nginx_conf = {
-    'user': 'www-data',
-    'worker_processes': 'auto',
-    'pid': '/run/nginx.pid',
-    'events': '{',
-    'worker_connections': '768',
-    'http': '{',
-    'sendfile': 'on',
-    'tcp_nopush': 'on',
-    'tcp_nodelay': 'on',
-    'keepalive_timeout': '65',
-    'types_hash_max_size': '2048',
-    'http.include.0': '/etc/nginx/mime.types',
-    'default_type': 'application/octet-stream',
-    'ssl_protocols': 'TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE',
-    'ssl_prefer_server_ciphers': 'on',
-    'access_log': '/var/log/nginx/access.log',
-    'error_log': '/var/log/nginx/error.log',
-    'gzip': 'on',
-    'gzip_disable': '"msie6"',
-    'http.include.1': '/etc/nginx/conf.d/*.conf',
-    'http.include.2': '/etc/nginx/sites-enabled/*',
-}
