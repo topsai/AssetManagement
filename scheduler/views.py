@@ -140,6 +140,7 @@ def server(request, conf=None):
         cmd = 'cat {}{}'.format(settings.CONF_DIR, conf)
         ret, err = get_info(cmd)
         data['ret'] = ret
+        return HttpResponse(ret)
     conf_list = []
     if request.method == 'POST':
         server_name = request.POST.get('server_name')

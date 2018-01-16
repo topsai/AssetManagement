@@ -116,5 +116,6 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static'), ]
 
 JENKINS_SERVER = '192.168.4.71'
-DOCKER_SERVER = '192.168.4.71'
+JENKINS_URL = 'http://192.168.4.71/jenkins/'
+DOCKER_SERVER = 'http://192.168.4.71:2375/'
 CONF_DIR = '/etc/nginx/conf.d/'
